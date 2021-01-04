@@ -1,0 +1,58 @@
+version: '3.7'
+services:
+
+  zookeeper-test:
+    image: jplock/zookeeper:3.4.6
+    container_name: zookeeper-test
+    ports:
+      - "2181:2181"
+
+  kafka-east-1:
+    image: wurstmeister/kafka:2.13-2.6.0
+    container_name: kafka-east-1
+    ports:
+      - "9091:9092"
+    volumes:
+      - "/Users/jtrujillo/git/jtrujillo/kafka-test/mirrormaker:/libs"
+    environment:
+      KAFA_BROKER_ID: "kafka-east-1"
+      KAFKA_ADVERTISED_PORT: "9092"
+      KAFKA_ADVERTISED_HOST_NAME: "kafka-east-1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
+      KAFKA_CREATE_TOPICS: "origin.test-topic:5:1,test-topic:5:1"
+
+  kafka-east-2:
+    image: wurstmeister/kafka:2.13-2.6.0
+    container_name: kafka-east-2
+    ports:
+      - "9092:9092"
+    environment:
+      KAFA_BROKER_ID: "kafka-east-2"
+      KAFKA_ADVERTISED_PORT: "9092"
+      KAFKA_ADVERTISED_HOST_NAME: "kafka-east-2"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
+      KAFKA_CREATE_TOPICS: "origin.test-topic:5:1,test-topic:5:1"
+
+  kafka-west-1:
+    image: wurstmeister/kafka:2.13-2.6.0
+    container_name: kafka-west-1
+    ports:
+      - "9093:9092"
+    environment:
+      KAFA_BROKER_ID: "kafka-west-1"
+      KAFKA_ADVERTISED_PORT: "9092"
+      KAFKA_ADVERTISED_HOST_NAME: "kafka-west-1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
+      KAFKA_CREATE_TOPICS: "origin.test-topic:5:1,test-topic:5:1"
+
+  kafka-west-2:
+    image: wurstmeister/kafka:2.13-2.6.0
+    container_name: kafka-west-2
+    ports:
+      - "9094:9092"
+    environment:
+      KAFA_BROKER_ID: "kafka-west-2"
+      KAFKA_ADVERTISED_PORT: "9092"
+      KAFKA_ADVERTISED_HOST_NAME: "kafka-west-2"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
+      KAFKA_CREATE_TOPICS: "origin.test-topic:5:1,test-topic:5:1"
