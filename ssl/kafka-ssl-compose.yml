@@ -1,0 +1,35 @@
+version: '3.7'
+services:
+
+  zookeeper-test:
+    image: jplock/zookeeper:3.4.6
+    container_name: zookeeper-test
+    ports:
+      - "2181:2181"
+
+  kafka-east-1:
+    image: wurstmeister/kafka:2.13-2.6.0
+    container_name: kafka-east-1
+    ports:
+      - "9091:9092"
+    volumes:
+      - "/Users/jtrujillo/git/jtrujillo/kafka-test/ssl:/libs"
+    environment:
+      KAFA_BROKER_ID: "kafka-east-1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
+      #KAFKA_CREATE_TOPICS: "origin.test-topic:5:1,test-topic:5:1"
+      KAFKA_ADVERTISED_LISTENERS: PLAIN://localhost:9092,SSL://localhost:9093
+      KAFKA_LISTENERS: PLAIN://:9092,SSL://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAIN:PLAINTEXT,SSL:SSL
+      KAFKA_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /libs/certs/kafka.client.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: changeme
+      KAFKA_SSL_KEYSTORE_LOCATION: /libs/certs/kafka.server.keystore.jks
+      KAFKA_SSL_KEYSTORE_PASSWORD: changeme
+      KAFKA_SSL_KEY_PASSWORD: changeme
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_SUPER_USERS: User:CN=root
+      #KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+      KAFKA_SECURITY_PROTOCOL: SSL
