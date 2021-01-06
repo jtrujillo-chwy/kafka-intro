@@ -92,6 +92,7 @@ kafka-console-producer.sh \
 kafka-console-consumer.sh \
   --bootstrap-server kafka-east-1:9093 \
   --topic origin.test-topic \
+  --group "test-1" \
   --consumer.config /libs/client-ssl.properties \
   --from-beginning
 ```
