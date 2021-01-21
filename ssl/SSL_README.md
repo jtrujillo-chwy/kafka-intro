@@ -51,7 +51,7 @@ keytool -keystore kafka.server.keystore.jks -alias localhost -importcert -file c
 rm cert-file ca-cert.srl cert-signed
 ```
 
-### Create the client keystore
+### Create the client keystore (Not needed for SASL auth)
 
 ```
 keytool -keystore kafka.client.keystore.jks \
@@ -120,7 +120,7 @@ Add producer permissions:
 kafka-acls.sh \
   --bootstrap-server kafka-east-1:9093 \
   --command-config libs/root.properties \
-  --add --allow-principal User:CN=com.chewy.cse.client,OU=DEMM,O=Chewy,C=US \
+  --add --allow-principal User:com.chewy.cse.client \
   --producer \
   --topic origin.test-topic
 ```
@@ -131,7 +131,7 @@ Add consumer permissions. It is broken in 2 commands to enable group wildcarding
 kafka-acls.sh \
   --bootstrap-server kafka-east-1:9093 \
   --command-config libs/root.properties \
-  --add --allow-principal User:CN=com.chewy.cse.client,OU=DEMM,O=Chewy,C=US \
+  --add --allow-principal User:com.chewy.cse.client \
   --operation Read \
   --operation Describe \
   --topic origin.test-topic
@@ -139,7 +139,7 @@ kafka-acls.sh \
 kafka-acls.sh \
   --bootstrap-server kafka-east-1:9093 \
   --command-config libs/root.properties \
-  --add --allow-principal User:CN=com.chewy.cse.client,OU=DEMM,O=Chewy,C=US \
+  --add --allow-principal User:com.chewy.cse.client \
   --operation Read \
   --group '*'
 ```

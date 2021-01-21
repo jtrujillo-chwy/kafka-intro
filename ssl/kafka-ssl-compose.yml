@@ -1,35 +1,62 @@
 version: '3.7'
 services:
 
+  dynamo-db-local:
+    image: amazon/dynamodb-local:1.13.5
+    container_name: dynamo-db-local
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb"]
+
   zookeeper-test:
-    image: jplock/zookeeper:3.4.6
+    image: bitnami/zookeeper:3.6.2
     container_name: zookeeper-test
+    environment:
+      ZOO_PORT_NUMBER: 2181
+      ZOO_TICK_TIME: 2000
+      ZOO_ENABLE_AUTH: "yes"
+      ZOO_SERVER_USERS: kafkaserver
+      ZOO_SERVER_PASSWORDS: kafka_password
+      ZOO_CLIENT_USER: kafkaserver
+      ZOO_CLIENT_PASSWORD: kafka_password
     ports:
       - "2181:2181"
 
   kafka-east-1:
-    image: wurstmeister/kafka:2.13-2.6.0
+    image: bitnami/kafka:2.7.0
+    depends_on:
+      - zookeeper-test
     container_name: kafka-east-1
     ports:
-      - "9091:9092"
+      - "9093:9093"
     volumes:
-      - "/Users/jtrujillo/git/jtrujillo/kafka-test/ssl:/libs"
+      - "./:/libs:ro"
+      - './certs/kafka.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro'
+      - './certs/kafka.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro'
     environment:
-      KAFA_BROKER_ID: "kafka-east-1"
+      KAFKA_BROKER_ID: 1
+      # Zookeeper config
       KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
-      #KAFKA_CREATE_TOPICS: "origin.test-topic:5:1,test-topic:5:1"
-      KAFKA_ADVERTISED_LISTENERS: PLAIN://localhost:9092,SSL://localhost:9093
-      KAFKA_LISTENERS: PLAIN://:9092,SSL://:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAIN:PLAINTEXT,SSL:SSL
-      KAFKA_INTER_BROKER_LISTENER_NAME: SSL
-      KAFKA_SSL_CLIENT_AUTH: required
-      KAFKA_SSL_TRUSTSTORE_LOCATION: /libs/certs/kafka.client.truststore.jks
-      KAFKA_SSL_TRUSTSTORE_PASSWORD: changeme
-      KAFKA_SSL_KEYSTORE_LOCATION: /libs/certs/kafka.server.keystore.jks
-      KAFKA_SSL_KEYSTORE_PASSWORD: changeme
-      KAFKA_SSL_KEY_PASSWORD: changeme
-      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
-      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
-      KAFKA_SUPER_USERS: User:CN=root
-      #KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
-      KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_ZOOKEEPER_USER: kafkaserver
+      KAFKA_ZOOKEEPER_PASSWORD: kafka_password
+      KAFKA_ZOOKEEPER_PROTOCOL: SASL
+      # Certificate
+      KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /opt/bitnami/kafka/config/certs/kafka.truststore.jks
+      KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: changeme
+      KAFKA_CFG_SSL_KEYSTORE_LOCATION: /opt/bitnami/kafka/config/certs/kafka.keystore.jks
+      KAFKA_CFG_SSL_KEYSTORE_PASSWORD: changeme
+      KAFKA_CERTIFICATE_PASSWORD: changeme
+      KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+      # Listener config
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:SSL,CLIENT:SASL_SSL
+      KAFKA_CFG_LISTENERS: INTERNAL://:9092,CLIENT://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: INTERNAL://kafka-east-1:9092,CLIENT://kafka-east-1:9093
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INTERNAL
+      # Users
+      KAFKA_CFG_SUPER_USERS: User:CN=root;User:admin
+      KAFKA_CLIENT_USERS: admin,com.chewy.cse.client
+      KAFKA_CLIENT_PASSWORDS: adminpass,kafkapassword
+      # ACLs
+      KAFKA_CFG_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      # General settings
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"

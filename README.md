@@ -64,7 +64,7 @@ kafka-mirror-maker.sh \
   --producer.config libs/mirrormaker-producer.properties \
   --num.streams 3 \
   --whitelist "origin.*" \
-  --message.handler com.chewy.kafkahandlers.RenameTopicHandler --message.handler.args "origin.->"
+  --message.handler com.chewy.cse.kafkahandlers.RenameTopicHandler --message.handler.args "origin.->" &
 ```
 
 ### Producing and Consuming
